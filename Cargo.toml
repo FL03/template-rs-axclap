@@ -1,0 +1,29 @@
+[package]
+authors = ["FL03 <jo3mccain@icloud.com> (https://gitlab.com/FL03)"]
+categories = []
+description = ""
+edition = "2021"
+homepage = "https://gitlab.com/FL03/template-rs-cli/-/wiki"
+keywords = []
+name = "template-rs-cli"
+publish = true
+readme = "README.md"
+repository = "https://gitlab.com/FL03/template-rs-cli"
+version = "0.1.0"
+
+[[bin]]
+bench = false
+name = "template-rs-cli"
+
+[build-dependencies]
+
+[dependencies]
+clap = { features = ["derive"], version = "3.2.22" }
+log = "0.4.17"
+scsys = { features = ["full"], git = "https://github.com/scattered-systems/scsys" }
+serde = { features = ["derive"], version = "1.0.144" }
+serde_json = "1.0.85"
+strum = { features = ["derive"], version = "0.24.1" }
+tokio = { features = ["full"], version = "1.21.0" }
+
+[dev-dependencies]
