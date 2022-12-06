@@ -1,0 +1,42 @@
+name: Docker
+
+on:
+  push:
+    branches: [ "main" ]
+    tags: [ "v*.*.*" ]
+  schedule:
+    - cron: "30 9 * * 5"
+  workflow_dispatch:
+    inputs:
+      publish:
+        default: true
+        description: 'Publish'
+        required: true
+        type: boolean
+
+env:
+  DOCKERHUB_USERNAME: jo3mccain
+  IMAGE: jo3mccain/template-rs:rust-cli
+  IMAGE_TAG: latest
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build the Docker image
+        run: docker buildx build --tag ${{ env.IMAGE }} .
+  publish:
+    if: ${{ github.event.inputs.publish }}
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Publish to Registry
+      uses: elgohr/Publish-Docker-Github-Action@v5
+      with:
+        name: ${{ env.IMAGE }}
+        username: ${{ env.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+        dockerfile: Dockerfile

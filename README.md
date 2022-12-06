@@ -1,19 +1,48 @@
-# template-rs-cli
+# template-cli-rs
 
-## Getting Started
+[![Clippy](https://github.com/FL03/template-cli-rs/actions/workflows/clippy.yml/badge.svg)](https://github.com/FL03/template-cli-rs/actions/workflows/clippy.yml)
+[![Docker](https://github.com/FL03/template-cli-rs/actions/workflows/docker.yml/badge.svg)](https://github.com/FL03/template-cli-rs/actions/workflows/docker.yml)
+[![Rust](https://github.com/FL03/template-cli-rs/actions/workflows/rust.yml/badge.svg)](https://github.com/FL03/template-cli-rs/actions/workflows/rust.yml)
 
-### Clone the repository
+***
 
-    git clone https://gitlab.com/FL03/template-rs-cli
+template-cli-rs
 
-### Building the project
+## Installation
 
-#### _Cargo Commands_
+Make sure you have docker installed on the target system
 
-    cargo build --color always --verbose
-    cargo run --help
+### *Pull the image*
 
-#### _Container_
+```bash
+docker pull jo3mccain/template-cli-rs:latest
+```
 
-    docker build --tag jo3mccain/template-rs-cli:next --target latest
-    docker run -d jo3mccain/template-rs-cli:next
+### *Build the image locally (optional)*
+
+```bash
+docker buildx build --tag jo3mccain/template-cli-rs:latest .
+```
+
+### *Run the image*
+
+```bash
+docker run -P jo3mccain/template-cli-rs:latest
+```
+
+## Usage
+
+```bash
+    cli -h 
+```
+
+## Contributors
+
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+
+Please make sure to update tests as appropriate.
+
+## License
+
+* [Apache-2.0](https://choosealicense.com/licenses/apache-2.0/)
+* [MIT](https://choosealicense.com/licenses/mit/)

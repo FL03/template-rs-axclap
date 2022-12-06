@@ -1,21 +1,40 @@
-FROM rust:latest as builder-base
+FROM rust as base
 
 RUN apt-get update -y && apt-get upgrade -y
 
+FROM base as builder-base
+
+RUN rustup update
+
 FROM builder-base as builder
 
-ADD . /project
-WORKDIR /project
+ENV CARGO_TERM_COLOR=always
+
+ADD . /workspace
+WORKDIR /workspace
 
 COPY . .
-RUN cargo build --release
+RUN cargo build --release -v --workspace
 
-FROM photon as app-base
+FROM debian:buster-slim as runner-base
 
-RUN yum update -y && yum upgrade -y
+ENV RUST_LOG="info" \
+    SERVER_PORT=8080
 
-FROM app-base as latest
+RUN apt-get update -y && apt-get upgrade -y
 
-COPY --from=builder /project/target/release/conduit /conduit
+FROM runner-base as runner 
 
-CMD ["conduit"]
+COPY --chown=55 .config /config
+VOLUME [ "/config" ]
+
+COPY --from=builder /workspace/target/release/cli /bin/cli
+
+FROM runner
+
+EXPOSE 80
+EXPOSE ${SERVER_PORT}
+
+ENTRYPOINT [ "cli" ]
+
+CMD [ "-h" ]

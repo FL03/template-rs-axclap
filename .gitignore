@@ -17,12 +17,15 @@
 **/.svelte-kit/
 **/.vscode/
 
+**/artifacts/
 **/build/
 **/debug/
 **/dist/
 **/env/
 **/node_modules/
+**/pkg/
 **/target/
+**/tmp/
 **/venv/
 
 # File Extensions
