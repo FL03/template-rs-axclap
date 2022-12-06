@@ -20,15 +20,15 @@ impl Settings {
             .set_default("logger.level", "info")?
             .set_default("server.host", "127.0.0.1")?
             .set_default("server.port", 8080)?;
-            if let Ok(f) = try_collect_config_files("**/*.config.*", false) {
-                builder = builder.add_source(f);
-            }
-            if let Ok(lvl) = std::env::var("RUST_LOG") {
-                builder = builder.set_override("logger.level", lvl)?;
-            }
-            if let Ok(port) = std::env::var("SERVER_PORT") {
-                builder = builder.set_override("server.port", port)?;
-            }
+        if let Ok(f) = try_collect_config_files("**/*.config.*", false) {
+            builder = builder.add_source(f);
+        }
+        if let Ok(lvl) = std::env::var("RUST_LOG") {
+            builder = builder.set_override("logger.level", lvl)?;
+        }
+        if let Ok(port) = std::env::var("SERVER_PORT") {
+            builder = builder.set_override("server.port", port)?;
+        }
 
         builder.build()?.try_deserialize()
     }

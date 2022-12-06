@@ -11,14 +11,13 @@ pub mod cli;
 pub mod states;
 
 use crate::states::Appstate;
-use scsys::prelude::{BoxResult, Context};
+use scsys::prelude::{AsyncResult, Context, Message};
 use std::sync::Arc;
 
 #[tokio::main]
-async fn main() -> scsys::BoxResult {
+async fn main() -> AsyncResult {
     let mut app = Application::default();
     println!("{:?}", &app);
-    
 
     Ok(())
 }
@@ -35,17 +34,17 @@ impl Application {
         Self { cnf, ctx, state }
     }
     /// Initialize the command line interface
-    pub async fn cli(&mut self) -> BoxResult<Cli> {
-        let cli = Cli::default();
-        if cli.debug > 0 {
+    pub async fn cli(&mut self) -> AsyncResult<&Self> {
+        let cli = cli::new();
+        if cli.debug {
             println!("Debug");
         }
         if cli.command.is_some() {
             match cli.clone().command.unwrap() {
-                Commands::Connect { address } => {
+                cli::Commands::Connect { address } => {
                     println!("{:?}", address);
                 }
-                Commands::System { up } => {
+                cli::Commands::System { up } => {
                     if up {
                         tracing::info!("Message Recieved: Initializing the platform...");
                     }
@@ -53,10 +52,10 @@ impl Application {
             }
         }
 
-        Ok(cli)
+        Ok(self)
     }
     /// AIO method for running the initialized application
-    pub async fn quickstart(&mut self) -> BoxResult<&Self> {
+    pub async fn quickstart(&mut self) -> AsyncResult<&Self> {
         self.with_logging();
         tracing::info!("Startup: Application initializing...");
         self.runtime().await?;
@@ -64,8 +63,8 @@ impl Application {
         Ok(self)
     }
     /// Application runtime
-    pub async fn runtime(&mut self) -> BoxResult {
-        self.set_state(Appstate::Process(scsys::prelude::Message::from(
+    pub async fn runtime(&mut self) -> AsyncResult {
+        self.set_state(Appstate::Process(Message::from(
             serde_json::json!({"result": "success"}),
         )))?;
         // Fetch the initialized cli and process the results
@@ -75,7 +74,7 @@ impl Application {
         Ok(())
     }
     /// Change the application state
-    pub fn set_state(&mut self, state: Appstate) -> BoxResult<&Self> {
+    pub fn set_state(&mut self, state: Appstate) -> AsyncResult<&Self> {
         self.state = Arc::new(state.clone());
         tracing::info!("Update: Application State updated to {}", state);
         Ok(self)
@@ -101,7 +100,7 @@ impl std::convert::From<Settings> for Application {
 
 impl std::convert::From<Context<Settings>> for Application {
     fn from(data: Context<Settings>) -> Self {
-        Self::new(data.clone().settings, data, Default::default())
+        Self::new(data.clone().cnf, data, Default::default())
     }
 }
 
