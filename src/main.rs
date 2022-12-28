@@ -1,105 +1,136 @@
 /*
-    Appellation: template-cli-rs <binary>
+    Appellation: Conduit <binary>
     Contrib: FL03 <jo3mccain@icloud.com>
     Description: ... summary ...
 */
-pub use self::settings::*;
+pub use self::{context::*, settings::*, states::*};
 
+pub(crate) mod context;
 pub(crate) mod settings;
+pub(crate) mod states;
 
+pub mod api;
 pub mod cli;
-pub mod states;
 
-use crate::states::Appstate;
-use scsys::prelude::{AsyncResult, Context, Message};
-use std::sync::Arc;
+use acme::prelude::AppSpec;
+use scsys::prelude::{BoxResult, Locked, State};
+
+use std::{
+    convert::From,
+    sync::{Arc, Mutex},
+};
+
+///
+pub type ChannelPackStd<T> = (std::sync::mpsc::Sender<T>, std::sync::mpsc::Receiver<T>);
+///
+pub type TokioChannelPackMPSC<T> = (tokio::sync::mpsc::Sender<T>, tokio::sync::mpsc::Receiver<T>);
 
 #[tokio::main]
-async fn main() -> AsyncResult {
+async fn main() -> BoxResult {
+    // Create an application instance
     let mut app = Application::default();
-    println!("{:?}", &app);
+    // Quickstart the application runtime with the following command
+    app.start().await?;
 
     Ok(())
 }
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug)]
 pub struct Application {
     pub cnf: Settings,
-    pub ctx: Context<Settings>,
-    pub state: Arc<Appstate>,
+    pub ctx: Context,
+    pub state: Locked<State<States>>,
 }
 
 impl Application {
-    pub fn new(cnf: Settings, ctx: Context<Settings>, state: Arc<Appstate>) -> Self {
+    pub fn new(cnf: Settings, ctx: Context, state: Locked<State<States>>) -> Self {
+        cnf.logger().clone().setup(None);
+        tracing_subscriber::fmt::init();
+        tracing::info!("Application initialized; completing setup...");
         Self { cnf, ctx, state }
     }
-    /// Initialize the command line interface
-    pub async fn cli(&mut self) -> AsyncResult<&Self> {
-        let cli = cli::new();
-        if cli.debug {
-            println!("Debug");
-        }
-        if cli.command.is_some() {
-            match cli.clone().command.unwrap() {
-                cli::Commands::Connect { address } => {
-                    println!("{:?}", address);
-                }
-                cli::Commands::System { up } => {
-                    if up {
-                        tracing::info!("Message Recieved: Initializing the platform...");
-                    }
-                }
-            }
-        }
-
+    // initializes a pack of channels
+    pub fn channels<T>(&self, buffer: usize) -> TokioChannelPackMPSC<T> {
+        tokio::sync::mpsc::channel::<T>(buffer)
+    }
+    /// Change the application state
+    pub async fn set_state(&mut self, state: State<States>) -> BoxResult<&Self> {
+        // Update the application state
+        self.state = Arc::new(Mutex::new(state.clone()));
+        // Post the change of state to the according channel(s)
+        self.channels(1).0.send(self.state.clone()).await?;
+        tracing::info!("Updating the application state to {}", state);
         Ok(self)
     }
+    /// Application runtime
+    pub async fn runtime(&mut self) -> BoxResult {
+        let cli = cli::new();
+        self.set_state(State::new(None, None, Some(States::Process)))
+            .await?;
+        // Fetch the initialized cli and process the results
+        cli.handler().await?;
+        self.set_state(State::new(None, None, Some(States::Complete)))
+            .await?;
+        Ok(())
+    }
     /// AIO method for running the initialized application
-    pub async fn quickstart(&mut self) -> AsyncResult<&Self> {
-        self.with_logging();
+    pub async fn start(&mut self) -> BoxResult<&Self> {
         tracing::info!("Startup: Application initializing...");
         self.runtime().await?;
 
         Ok(self)
     }
-    /// Application runtime
-    pub async fn runtime(&mut self) -> AsyncResult {
-        self.set_state(Appstate::Process(Message::from(
-            serde_json::json!({"result": "success"}),
-        )))?;
-        // Fetch the initialized cli and process the results
-        let cli = self.cli().await?;
-        tracing::debug!("{:?}", cli);
+}
 
-        Ok(())
+impl AppSpec for Application {
+    type Cnf = Settings;
+
+    type Ctx = Context;
+
+    type State = State<States>;
+
+    fn init() -> Self {
+        Self::default()
     }
-    /// Change the application state
-    pub fn set_state(&mut self, state: Appstate) -> AsyncResult<&Self> {
-        self.state = Arc::new(state.clone());
-        tracing::info!("Update: Application State updated to {}", state);
+
+    fn context(&self) -> Self::Ctx {
+        self.ctx.clone()
+    }
+
+    fn name(&self) -> String {
+        String::from("Conduit")
+    }
+
+    fn settings(&self) -> Self::Cnf {
+        self.cnf.clone()
+    }
+
+    fn setup(&mut self) -> BoxResult<&Self> {
+        tracing_subscriber::fmt::init();
+        tracing::info!("Application initialized; completing setup...");
+
         Ok(self)
     }
-    /// Function wrapper for returning the current application state
-    pub fn state(&self) -> &Arc<Appstate> {
+
+    fn state(&self) -> &Locked<State<States>> {
         &self.state
     }
-    /// Initialize application logging
-    pub fn with_logging(&mut self) -> &Self {
-        self.cnf.logger().clone().setup(None);
-        tracing_subscriber::fmt::init();
-        tracing::debug!("Success: Initialized the logging protocols");
-        self
+}
+
+impl Default for Application {
+    fn default() -> Self {
+        Self::from(Context::default())
     }
 }
 
-impl std::convert::From<Settings> for Application {
+impl From<Settings> for Application {
     fn from(data: Settings) -> Self {
-        Self::from(Context::new(data))
+        Self::new(data.clone(), Context::from(data), Default::default())
     }
 }
 
-impl std::convert::From<Context<Settings>> for Application {
-    fn from(data: Context<Settings>) -> Self {
+impl From<Context> for Application {
+    fn from(data: Context) -> Self {
         Self::new(data.clone().cnf, data, Default::default())
     }
 }

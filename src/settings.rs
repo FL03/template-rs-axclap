@@ -1,5 +1,5 @@
 /*
-    Appellation: settings <library>
+    Appellation: settings <module>
     Contrib: FL03 <jo3mccain@icloud.com>
     Description: ... summary ...
 */
@@ -10,26 +10,43 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Settings {
     pub logger: Logger,
+    pub mode: String,
+    pub name: String,
     pub server: Server,
 }
 
 impl Settings {
+    pub fn new(mode: Option<String>, name: Option<String>) -> Self {
+        let (mode, name) = (
+            mode.unwrap_or_else(|| String::from("production")),
+            name.unwrap_or_else(|| String::from("template-rs-cli")),
+        );
+        let (logger, server) = (Default::default(), Default::default());
+        Self {
+            logger,
+            mode,
+            name,
+            server,
+        }
+    }
     pub fn build() -> ConfigResult<Self> {
         let mut builder = Config::builder()
             .add_source(Environment::default().separator("__"))
+            .set_default("mode", "production")?
+            .set_default("name", "conduit")?
             .set_default("logger.level", "info")?
             .set_default("server.host", "127.0.0.1")?
             .set_default("server.port", 8080)?;
-        if let Ok(f) = try_collect_config_files("**/*.config.*", false) {
-            builder = builder.add_source(f);
+
+        if let Ok(files) = try_collect_config_files("**/*config.*", false) {
+            builder = builder.add_source(files);
         }
-        if let Ok(lvl) = std::env::var("RUST_LOG") {
-            builder = builder.set_override("logger.level", lvl)?;
-        }
+        if let Ok(log) = std::env::var("RUST_LOG") {
+            builder = builder.set_override("logger.level", log)?;
+        };
         if let Ok(port) = std::env::var("SERVER_PORT") {
             builder = builder.set_override("server.port", port)?;
-        }
-
+        };
         builder.build()?.try_deserialize()
     }
 
@@ -52,10 +69,7 @@ impl Configurable for Settings {
 
 impl Default for Settings {
     fn default() -> Self {
-        let d = Settings {
-            logger: Default::default(),
-            server: Server::new("127.0.0.1".to_string(), 8080),
-        };
+        let d = Self::new(None, None);
         Self::build().unwrap_or(d)
     }
 }

@@ -1,44 +1,53 @@
 /*
     Appellation: cli <module>
-    Contributors: FL03 <jo3mccain@icloud.com>
-    Description:
-        ... Summary ...
+    Contrib: FL03 <jo3mccain@icloud.com>
+    Description: ... Summary ...
 */
-pub use self::{args::*, commands::*, interface::*};
+pub use self::{args::*, commands::*, context::*};
 
 pub(crate) mod args;
 pub(crate) mod commands;
 
+use std::{sync::Arc, thread::JoinHandle};
+
+///
 pub fn new() -> CommandLineInterface {
     CommandLineInterface::default()
 }
+///
+pub fn handle() -> JoinHandle<Arc<CommandLineInterface>> {
+    let tmp = Arc::new(new());
+    std::thread::spawn(move || {
+        tmp.handler().expect("");
+        tmp
+    })
+}
 
-pub(crate) mod interface {
+pub(crate) mod context {
     use super::Commands;
+    use anyhow::Result;
     use clap::Parser;
-    use serde::{Deserialize, Serialize};
 
-    #[derive(Clone, Debug, Deserialize, Eq, Hash, Parser, PartialEq, Serialize)]
+    #[derive(Clone, Debug, Hash, Parser, PartialEq)]
     #[clap(about, author, version)]
-    #[clap(long_about = "")]
+    #[clap(long_about = None)]
     pub struct CommandLineInterface {
         #[clap(subcommand)]
         pub command: Option<Commands>,
         #[arg(action = clap::ArgAction::SetTrue, long, short)]
         pub debug: bool,
-        #[clap(long, short, value_parser)]
-        pub mode: Option<String>,
         #[arg(action = clap::ArgAction::SetTrue, long, short)]
         pub update: bool,
     }
 
     impl CommandLineInterface {
-        pub async fn handler(&self) -> scsys::AsyncResult<&Self> {
-            match self.command.clone() {
-                None => {}
-                Some(v) => {
-                    v.handler().await?;
-                }
+        pub fn new() -> Self {
+            Self::parse()
+        }
+        pub fn handler(&self) -> Result<&Self> {
+            if self.debug {}
+            if let Some(cmds) = &self.command {
+                cmds.handler()?;
             }
             Ok(self)
         }

@@ -1,3 +1,4 @@
+name = "template-rs-cli"
 
 [logger]
 level = "info"
