@@ -1,0 +1,17 @@
+[template]
+cargo_generate_version = ">=0.15.2"
+
+[placeholders.description]
+default = ""
+prompt = "description:"
+type = "string"
+
+[placeholders.origin]
+default = "{username}"
+prompt = "Git origin (username)"
+type = "string"
+
+[placeholders.spdx]
+default = "Apache-2.0"
+prompt = "license (SPDX)"
+type = "string"

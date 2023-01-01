@@ -28,13 +28,12 @@ FROM runner-base as runner
 COPY --chown=55 .config /config
 VOLUME [ "/config" ]
 
-COPY --from=builder /workspace/target/release/cli /bin/cli
+COPY --from=builder /workspace/target/release/app /bin/app
 
 FROM runner
 
 EXPOSE 80
 EXPOSE ${SERVER_PORT}
 
-ENTRYPOINT [ "cli" ]
-
+ENTRYPOINT [ "app" ]
 CMD [ "-h" ]

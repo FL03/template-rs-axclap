@@ -17,16 +17,15 @@ pub fn router() -> Router {
 
 /// Define the landing endpoint
 pub async fn landing() -> Json<Value> {
-    let msg = Message::from("welcome to flow");
+    let name = env!("CARGO_PKG_NAME");
+    let msg = Message::from(format!("Welcome to {}", name));
     Json(json!(msg))
 }
-
 /// Implements a notification endpoint
 pub async fn notifications(Path(id): Path<usize>) -> Json<Value> {
     let data = json!({ "id": id });
     Json(json!(Message::from(data)))
 }
-
 /// Broadcasts the current settings specified by the user for the interface and other technical systems to leverage
 pub async fn settings(Extension(ctx): Extension<Context>) -> Json<Value> {
     Json(json!(ctx.cnf))
