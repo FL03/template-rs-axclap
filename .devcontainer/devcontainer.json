@@ -13,7 +13,7 @@
 		"ghcr.io/devcontainers-contrib/features/npm-package:1": {},
 		"ghcr.io/devcontainers-contrib/features/poetry:2": {},
 		"devwasm.azurecr.io/dev-wasm/dev-wasm-feature/rust-wasi:0": {}
-	}
+	},
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
@@ -23,7 +23,7 @@
 		80,
 		8080,
 		6379
-	],
+	]
 
 	// Configure tool-specific properties.
 	// "customizations": {},

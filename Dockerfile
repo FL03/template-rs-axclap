@@ -36,4 +36,4 @@ EXPOSE 80
 EXPOSE ${SERVER_PORT}
 
 ENTRYPOINT [ "app" ]
-CMD [ "-h" ]
+CMD [ "--up" ]
