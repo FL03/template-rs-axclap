@@ -12,13 +12,23 @@ pub fn new() -> Api {
 }
 
 pub fn from_context(ctx: crate::Context) -> Api {
-    Api::new(ctx.clone(), ctx.cnf.server.port)
+    Api::new(ctx)
+}
+
+pub async fn handle(ctx: crate::Context) -> tokio::task::JoinHandle<Api> {
+    tokio::spawn(async move {
+        let api = std::sync::Arc::new(from_context(ctx));
+        api.start().await.expect("");
+        api.as_ref().clone()
+    })
 }
 
 pub(crate) mod interface {
     use crate::{api::routes, Context};
-    use acme::net::servers::{Server, ServerSpec};
-    use acme::net::WebBackend;
+    use acme::prelude::{
+        servers::{Server, ServerSpec},
+        WebBackend,
+    };
     use axum::Router;
     use http::header::{HeaderName, AUTHORIZATION};
     use scsys::AsyncResult;
@@ -30,34 +40,16 @@ pub(crate) mod interface {
         trace::{DefaultMakeSpan, DefaultOnRequest, DefaultOnResponse, TraceLayer},
     };
 
-    #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, Serialize)]
+    #[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
     pub struct Api {
         pub ctx: Context,
         pub server: Server,
     }
 
     impl Api {
-        pub fn new(ctx: Context, port: u16) -> Self {
-            let server = Server::from(port);
+        pub fn new(ctx: Context) -> Self {
+            let server = Server::from(ctx.cnf.server.pieces());
             Self { ctx, server }
-        }
-        pub async fn client(&self) -> Router {
-            Router::new()
-                .merge(routes::router())
-                .layer(
-                    TraceLayer::new_for_http()
-                        .make_span_with(DefaultMakeSpan::new().include_headers(true))
-                        .on_request(DefaultOnRequest::new().level(tracing::Level::INFO))
-                        .on_response(DefaultOnResponse::new().level(tracing::Level::INFO)),
-                )
-                .layer(SetSensitiveHeadersLayer::new(std::iter::once(
-                    AUTHORIZATION,
-                )))
-                .layer(CompressionLayer::new())
-                .layer(PropagateHeaderLayer::new(HeaderName::from_static(
-                    "x-request-id",
-                )))
-                .layer(axum::Extension(self.ctx.clone()))
         }
         /// Quickstart the server with the outlined client
         pub async fn start(&self) -> AsyncResult {
@@ -78,10 +70,8 @@ pub(crate) mod interface {
         type Server = Server;
 
         async fn client(&self) -> axum::Router {
-            let mut router = Router::new();
-            // Merge other routers into the base router
-            router = router.merge(routes::index::router());
-            router = router
+            Router::new()
+                .merge(routes::api())
                 .layer(
                     TraceLayer::new_for_http()
                         .make_span_with(DefaultMakeSpan::new().include_headers(true))
@@ -95,8 +85,7 @@ pub(crate) mod interface {
                 .layer(PropagateHeaderLayer::new(HeaderName::from_static(
                     "x-request-id",
                 )))
-                .layer(axum::Extension(self.ctx.clone()));
-            router
+                .layer(axum::Extension(self.ctx.clone()))
         }
 
         fn context(&self) -> Self::Ctx {

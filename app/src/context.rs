@@ -3,10 +3,14 @@
     Contrib: FL03 <jo3mccain@icloud.com>
     Description: ... summary ...
 */
-use crate::Settings;
-use scsys::prelude::Contextual;
+use crate::{OneshotChannels, Settings, UnboundedMPSC};
+use scsys::prelude::{Contextual, Hash, Hashable, SerdeDisplay};
 use serde::{Deserialize, Serialize};
 use std::{convert::From, path::PathBuf};
+
+pub fn context_channels() -> OneshotChannels<Context> {
+    tokio::sync::oneshot::channel()
+}
 
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub enum Services {
@@ -15,7 +19,7 @@ pub enum Services {
     Authenticator = 1,
 }
 
-#[derive(Clone, Default, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Default, Deserialize, Eq, Hash, PartialEq, SerdeDisplay, Serialize)]
 pub struct Context {
     pub cnf: Settings,
     pub services: Vec<Services>,
@@ -56,6 +60,18 @@ impl Contextual for Context {
     }
 }
 
+impl From<Context> for OneshotChannels<Context> {
+    fn from(_val: Context) -> Self {
+        tokio::sync::oneshot::channel()
+    }
+}
+
+impl From<Context> for UnboundedMPSC<Context> {
+    fn from(_val: Context) -> Self {
+        tokio::sync::mpsc::unbounded_channel()
+    }
+}
+
 impl From<Settings> for Context {
     fn from(data: Settings) -> Self {
         Self::new(Some(data), None, None)
@@ -72,7 +88,7 @@ impl std::fmt::Debug for Context {
     }
 }
 
-impl std::fmt::Display for Context {
+impl std::fmt::Display for Services {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
