@@ -21,14 +21,14 @@ jobs:
       matrix:
         tags: [ latest ]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Build the Docker image
         run: docker buildx build --tag ${{ env.DOCKERHUB_USERNAME }}/template-bin-rs:${{ matrix.tags }} .
   publish:
     needs: build
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Publish to Registry
       uses: elgohr/Publish-Docker-Github-Action@v5
       with:
