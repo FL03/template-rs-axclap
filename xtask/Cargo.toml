@@ -21,7 +21,7 @@ test = true
 [dependencies]
 anyhow = "1.0.66"
 clap = { features = ["cargo", "derive", "env"], version = "4.0.29" }
-config = "0.13.3"
+config = "0.14.0"
 devx-cmd = "0.5.0"
 devx-pre-commit = "0.5.0" 
 duct = "0.13.6"
