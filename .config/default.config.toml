@@ -1,8 +1,32 @@
-name = "template-rs-cli"
-
-[logger]
-level = "info"
+mode = "release"
 
 [server]
-host = "127.0.0.1"
+name = "pzzld"
+
+[server.address]
+host = "0.0.0.0"
 port = 8080
+
+[services.tracing]
+ansi = true
+level = "debug"
+target = true
+thread_ids = false
+thread_names = false
+
+[services.database]
+pool_size = 200
+max_connections = 15
+# url = "postgres://postgres:postgres@localhost:5432/postgres"
+# setup the database url
+[services.database.url]
+provider = "postgresql"
+username = "postgres"
+password = "postgres"
+host = "localhost"
+port = 5432
+database = "postgres"
+
+[workspace]
+artifacts = "dist"
+workdir = "/home/pzzld/src/FL03/template-rs-dioxus"

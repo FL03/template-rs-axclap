@@ -1,22 +1,15 @@
 version: 2
+
 updates:
   - package-ecosystem: cargo
     directory: /
     schedule:
-        interval: daily
+      interval: weekly
   - package-ecosystem: docker
     directory: /
     schedule:
-        interval: daily
+      interval: monthly
   - package-ecosystem: github-actions
     directory: /
     schedule:
-        interval: daily
-  - package-ecosystem: cargo
-    directory: /app
-    schedule:
-        interval: daily
-  - package-ecosystem: cargo
-    directory: /xtask
-    schedule:
-        interval: daily
+      interval: monthly

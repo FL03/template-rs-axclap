@@ -1,29 +1,128 @@
-[workspace.package]
-authors = ["FL03 <jo3mccain@icloud.com> (https://github.com/FL03)"]
-homepage = "https://github.com/FL03/template-bin-rs/wiki"
+[package]
+authors = ["FL03 <jo3mccain@icloud.com>"]
+build = "build.rs"
+categories = ["command-line-utilities", "networking"]
+description = "A production ready server optimized for WASM applications"
+edition = "2021"
+homepage = "https://github.com/FL03/template-rs-bin/wiki"
+keywords = ["application", "cli", "server", "wasm"]
 license = "Apache-2.0"
+name = "template-rs-bin"
 readme = "README.md"
-repository = "https://github.com/FL03/template-bin-rs"
-version = "0.1.0"
+repository = "https://github.com/FL03/template-rs-bin.git"
+version = "0.0.0"
 
-[workspace]
-default-members = [
-    "app"
-]
-exclude = [
-    "xtask"
-]
-members = [
-    "app"
-]
+[[bin]]
+bench = false
+doctest = false
+name = "served"
+path = "bin/server.rs"
+test = false
 
+[lib]
+bench = true
+crate-type = ["cdylib", "rlib"]
+doctest = true
+name = "template"
+path = "src/lib.rs"
+test = true
+
+# ********* [FF] Features *********
+[features]
+default = ["http1"]
+
+full = ["default"]
+
+# ********* [FF] Depenencies *********
+cookie = ["axum-extra/cookie"]
+
+http1 = ["axum/http1", "hyper/http1"]
+
+http2 = ["axum/http2", "hyper/http2"]
+
+ws = ["axum/ws"]
+
+# ********* Dependencies *********
+[build-dependencies]
+
+[dev-dependencies]
+
+[dependencies]
+anyhow = "1"
+async-session = "3"
+async-trait = "0.1"
+axum = { features = ["macros"], version = "0.7" }
+bytes = "1"
+chrono = "0.4"
+config = "0.14"
+hyper = "1"
+lazy_static = "1"
+paste = "1"
+serde = { features = ["derive"], version = "1" }
+serde_json = "1"
+smart-default = "0.7"
+strum = { features = ["derive"], version = "0.26" }
+thiserror = "1"
+tokio = { features = ["full"], version = "1" }
+tower = { features = ["full"], version = "0.5" }
+url = "2"
+uuid = { features = ["fast-rng", "serde", "v4"], version = "1" }
+
+[dependencies.pzzld]
+features = ["serde"]
+branch = "v0.0.1"
+git = "https://github.com/FL03/pzzld.git"
+# path = "../../pzzld"
+version = "0.0.1"
+
+[dependencies.scsys]
+features = ["chrono", "derive", "serde"]
+version = "0.2.3"
+
+[dependencies.axum-extra]
+features = ["tracing"]
+version = "0.9"
+
+[dependencies.clap]
+features = ["derive", "env"]
+version = "4"
+
+[dependencies.hyper-util]
+features = ["server", "service"]
+version = "0.1"
+
+[dependencies.tokio-util]
+features = ["rt"]
+version = "0.7"
+
+[dependencies.tower-http]
+features = ["compression-full", "fs", "sensitive-headers", "trace"]
+version = "0.6"
+
+[dependencies.tracing]
+features = ["log"]
+version = "0.1"
+
+[dependencies.tracing-subscriber]
+features = ["env-filter", "fmt", "json"]
+version = "0.3"
+
+[package.metadata.docs.rs]
+all-features = true
+rustc-args = ["--cfg", "docsrs"]
+
+[target.wasm32-unknown-unknown]
+
+[target.wasm32-wasi]
+
+# ********* [profiles] *********
 [profile.dev]
 codegen-units = 256
 debug = true
 debug-assertions = true
 incremental = true
 lto = false
-panic = 'unwind'
+panic = "unwind"
 rpath = false
 opt-level = 0
 overflow-checks = true
@@ -32,9 +131,6 @@ overflow-checks = true
 codegen-units = 16
 debug = false
 debug-assertions = false
-incremental = false
-lto = false
-panic = 'unwind'
-rpath = false
+lto = true
 opt-level = 'z'
-overflow-checks = false
+panic = 'abort'

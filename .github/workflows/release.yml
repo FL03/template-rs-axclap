@@ -1,0 +1,78 @@
+name: crates-io
+
+concurrency:
+  cancel-in-progress: false
+  group: ${{ github.workflow }}-${{ github.ref }}
+
+env:
+  CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+  CARGO_TERM_COLOR: always
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+on:
+  release:
+    types: [ published ]
+  repository_dispatch:
+    types: [ crates-io ]
+  workflow_dispatch:
+
+permissions: write-all
+
+jobs:
+  release:
+    strategy:
+      matrix:
+        platform: [ ubuntu-latest, ]
+        target: [ x86_64-unknown-linux-gnu, ]
+        toolchain: [ stable, ]
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+      - 
+        name: rustup
+        run: |
+          rustup default ${{ matrix.toolchain }}
+          rustup target add ${{ matrix.target }}
+          rustup update
+      - 
+        name: build (release)
+        run: cargo build --all-features -r -v --workspace --target ${{ matrix.target }}
+      - 
+        name: cache
+        uses: actions/cache@v4
+        with:
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          restore-keys: |
+            ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+            ${{ runner.os }}-cargo-
+            ${{ runner.os }}-
+      - 
+        name: upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.repository.name }} (${{ github.ref }})
+          path: target/release/${{ github.event.repository.name }}
+      - 
+        name: create release
+        id: create_release
+        uses: actions/create-release@v1
+          
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+      - 
+        name: upload assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: target/release/${{ github.event.repository.name }}
+          asset_name: ${{ github.event.repository.name }}-${{ github.ref }}-linux-x64
+          asset_content_type: application/octet-stream

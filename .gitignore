@@ -1,61 +1,124 @@
-# Config
-**/config.*
-**/*.config.*
+# Development
 
+## Config
+**/.config/*.config.*
+
+!**/backend.config.*
+!**/default.config.*
+!**/docker.config.*
+
+## Environment
 **/*.env
 **/*.env.*
 
-# Directories
-**/__pycache__/
-**/__sapper__/
+!**/*default.env*
+!**/*.env.default
 
-**/.DS_STORE/
-**/.artifacts/data/
-**/.docker/data/
-**/.idea/
-**/.pytest_cache/
-**/.svelte-kit/
-**/.vscode/
+!**/*example.env*
+!**/*.env.example
 
-**/artifacts/
-**/build/
-**/debug/
-**/dist/
-**/env/
-**/node_modules/
-**/pkg/
-**/target/
-**/tmp/
-**/venv/
+## IDE
 
-# File Extensions
+### Atom
+**/.atom
+
+### JetBrains
+**/.idea
+
+**/*.iml
+**/*.ipr
+**/*.iws
+
+### Visual Studio Code
+**/.vscode
+
+## Hosting
+
+### Vercel
+**/.vercel
+
+# Language Specific
+
+## Node.js
+**/.DS_STORE
+**/build
+**/node_modules
+
+**/*.tsbuildinfo
+
+### Dependencies
+**/.pnp
+**/.pnp.*
+
+**/.yarn/install-state.gz
+
+### Frameworks
+
+#### Next.js
+**/.next
+**/out
+
+**/next-env.d.ts
+
+## Rust
+**/debug
+**/target
+
+**/Cargo.lock
+
+**/*.rs.bk
+
+# Miscellaneous
+
+## Directories
+
+### Build
+**/build
+**/dist
+**/out
+
+
+
+### Logs
+**/logs
+**/logs/*
+
+### Testing
+**/coverage
+
+### Temporary
+**/temp/*
+**/tmp/*
+
+## File Extensions
+
 **/*.bk
 **/*.bk.*
 
-**/*.csv
-**/*.csv.*
-
 **/*.db
-**/*.db.*
-
-**/*.db-*.*
 
 **/*.lock
-**/*.lock.*
-
-**/*-lock.*
+**/*-lock.json
 
 **/*.log
 **/*.log.*
 
-**/*.whl
-**/*.whl.*
+**/*.pem
+
+**/*.gz
+
+**/*.sqlite
 
 **/*.zip
-**/*.zip.*
 
-# Exceptions
-!**/default.config.*
-!**/*.env.example
-!**/*.config.js
-!**/*.config.cjs
+## Operating Systems
+
+### Linux
+
+#### NixOS
+!**/flake.lock!
+
+### Windows
+
+#### Windows Subsystem for Linux (WSL)
+**/*:Zone.Identifier
