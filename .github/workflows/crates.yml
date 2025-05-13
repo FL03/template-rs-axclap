@@ -1,0 +1,62 @@
+name: crates-io
+
+concurrency:
+  cancel-in-progress: false
+  group: ${{ github.workflow }}-${{ github.ref }}
+
+env:
+  CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+on:
+  release:
+    types: [ published ]
+  repository_dispatch:
+    types: [ crates-io ]
+  workflow_dispatch:
+
+permissions: write-all
+
+jobs:
+  features:
+    strategy:
+      max-parallel: 1
+      fail-fast: false
+      matrix:
+        feature: 
+          - nrt
+          - core
+          - mem
+          - surface
+          - actors
+          - rt
+          - net
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - 
+        name: rustup
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+      - 
+        name: cache
+        uses: Swatinem/rust-cache@v2
+      - 
+        name: publish (${{ matrix.feature }})
+        run: cargo publish --all-features -v -p eryon-${{ matrix.feature }}
+  root:
+    needs: [ features ]
+    runs-on: ubuntu-latest
+    steps:
+      - 
+        name: checkout
+        uses: actions/checkout@v4
+      - 
+        name: rustup
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+      - 
+        name: cache
+        uses: Swatinem/rust-cache@v2
+      - 
+        name: publish
+        run: cargo publish --all-features -v -p eryon

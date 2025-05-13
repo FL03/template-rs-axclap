@@ -2,7 +2,7 @@
     Appellation: platform <test>
     Contrib: FL03 <jo3mccain@icloud.com>
 */
-extern crate pzzld_server as pzzld;
+extern crate template_rs_bin as pzzld;
 
 use pzzld::config::Settings;
 

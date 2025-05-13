@@ -1,7 +1,7 @@
-mode = "release"
+mode = "development"
 
 [server]
-name = "pzzld"
+name = "templated"
 
 [server.address]
 host = "0.0.0.0"
@@ -29,4 +29,4 @@ database = "postgres"
 
 [workspace]
 artifacts = "dist"
-workdir = "/home/pzzld/src/FL03/template-rs-dioxus"
+workdir = "~/wasm/application"

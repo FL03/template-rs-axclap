@@ -2,7 +2,7 @@
     Appellation: sand <example>
     Contrib: @FL03
 */
-use pzzld_server::config::LogLevel;
+use template_rs_bin::config::LogLevel;
 use tokio_util::task::TaskTracker;
 
 pub type Arcm<T> = std::sync::Arc<std::sync::Mutex<T>>;

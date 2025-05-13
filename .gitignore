@@ -61,23 +61,18 @@
 **/next-env.d.ts
 
 ## Rust
-**/debug
+**/debug/
+**/release/
 **/target
 
-**/Cargo.lock
+!**/Cargo.lock
 
 **/*.rs.bk
 
 # Miscellaneous
-
-## Directories
-
-### Build
 **/build
 **/dist
 **/out
-
-
 
 ### Logs
 **/logs
@@ -96,9 +91,6 @@
 **/*.bk.*
 
 **/*.db
-
-**/*.lock
-**/*-lock.json
 
 **/*.log
 **/*.log.*

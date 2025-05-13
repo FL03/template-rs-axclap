@@ -1,9 +1,9 @@
 /*
-    Appellation: pzzld <binary>
+    Appellation: templated <binary>
     Contrib: FL03 <jo3mccain@icloud.com>
 */
-//! # pzzld
-use template::{cli::Cli, platform::Platform, Settings};
+//! # templated
+use template_rs_bin::{cli::Cli, platform::Platform, Settings};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

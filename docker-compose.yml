@@ -1,0 +1,62 @@
+version: "4.0"
+
+services:
+  node:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: template-rs-bin
+    restart: unless-stopped
+    networks: [ default, backend ]
+    ports: [ 8080:8080 ]
+    volumes:
+      - ./data:/data
+      - ./config:/config
+    environment:
+      - RUST_LOG="template-rs-bin=debug,info"
+      - RUST_BACKTRACE=1
+      - APP_CONFIG=/config/config.toml
+      - APP_MODE=production      
+      - APP_PUBLIC_ENDPOINT=http://0.0.0.0:8080
+      - APP_PUBLIC_KEY=your_public_key
+      - APP_SECRET_KEY=your_secret_key
+      - APP_DATABASE_URL=postgresql://postgres:postgres@postgres:5432/postgres
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+    networks: [ default, backend ]
+    ports: [ 5432:5432 ]
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+volumes:
+  config:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./config
+      o: bind
+  data:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./data
+      o: bind
+networks:
+  default:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: template_rs_bin_bridge
+  backend:
+    # Use a custom driver
+    driver: custom-driver
+  frontend:
+    # Specify driver options
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.host_binding_ipv4: "127.0.0.1"
+

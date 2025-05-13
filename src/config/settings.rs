@@ -8,6 +8,13 @@ type ConfigBuilder<S = config::builder::DefaultState> = config::builder::ConfigB
 
 type ConfigResult<T> = core::result::Result<T, config::ConfigError>;
 
+fn _load_env_or_default(
+    env: &str,
+    default: impl ToString,
+) -> String {
+    std::env::var(env).unwrap_or_else(|_| default.to_string())
+}
+
 fn fmt_src(dir: impl core::fmt::Display, fname: impl core::fmt::Display) -> String {
     format!("{dir}/{fname}")
 }
@@ -38,10 +45,15 @@ fn set_default(builder: ConfigBuilder) -> ConfigResult<ConfigBuilder> {
 }
 
 fn add_sources(builder: ConfigBuilder) -> ConfigBuilder {
-    let workdir =
-        std::env::var("PZZLD_CONFIG").unwrap_or_else(|_| crate::DEFAULT_DIR_CONFIG.to_string());
+    let workdir = _load_env_or_default(
+        "APP_CONFIG_DIR",
+        crate::DEFAULT_DIR_CONFIG,
+    );
     // get the settings file name
-    let fname = std::env::var("PZZLD_SETTINGS").unwrap_or_else(|_| "Puzzled.toml".to_string());
+    let fname = _load_env_or_default(
+        "APP_CONFIG_FILE",
+        crate::DEFAULT_CONFIG_FILE,
+    );
     // setup the builder's sources
     let builder = with_sources(
         builder,
@@ -50,24 +62,25 @@ fn add_sources(builder: ConfigBuilder) -> ConfigBuilder {
             "default.config",
             "server.config",
             "docker.config",
-            &fname,
+            "app.config",
             "prod.config",
+            &fname,
         ],
     );
 
     builder
-        .add_source(config::Environment::with_prefix("PZZLD").separator("_"))
+        .add_source(config::Environment::with_prefix("APP").separator("_"))
         .add_source(config::File::with_name(&fname).required(false))
 }
 
 fn set_overrides(builder: ConfigBuilder) -> ConfigResult<ConfigBuilder> {
     Ok({
         builder
-            .set_override_option("mode", std::env::var("RUNMODE").ok())?
+            .set_override_option("mode", std::env::var("APP_MODE").ok())?
             .set_override_option("name", std::env::var("APP_NAME").ok())?
-            .set_override_option("network.address.host", std::env::var("HOSTNAME").ok())?
-            .set_override_option("network.address.port", std::env::var("HOSTPORT").ok())?
-            .set_override_option("workspace.workdir", std::env::var("PZZLD_WORKDIR").ok())?
+            .set_override_option("network.address.host", std::env::var("APP_HOST").ok())?
+            .set_override_option("network.address.port", std::env::var("APP_PORT").ok())?
+            .set_override_option("workspace.workdir", std::env::var("APP_WORKDIR").ok())?
     })
 }
 

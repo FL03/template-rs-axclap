@@ -39,8 +39,9 @@ pub mod prelude {
 }
 
 pub mod consts {
+    pub const PACKAGE_NAME: &str = env!("CARGO_PKG_NAME");
     /// The name of the application.
-    pub const APP_NAME: &str = "pzzld";
+    pub const APP_NAME: &str = "templated";
     /// A str constant for the localhost address.
     pub const LOCALHOST: &str = "127.0.0.1";
     /// The default host for the application.
@@ -48,7 +49,7 @@ pub mod consts {
     /// The default port for the application.
     pub const DEFAULT_PORT: u16 = 8080;
     /// The default name of the executable
-    pub const DEFAULT_APPLICATION: &str = "pzzld";
+    pub const DEFAULT_APPLICATION: &str = "templated";
     /// The default basepath for the application.
     pub const DEFAULT_BASEPATH: &str = "/";
     /// The default database url for the application.
@@ -58,9 +59,11 @@ pub mod consts {
     /// The default location for the configuration directory.
     pub const DEFAULT_DIR_CONFIG: &str = ".config";
     /// The name of the artifacts directory.
-    pub const DEFAULT_DIR_CONTEXT: &str = "/opt/pzzld";
+    pub const DEFAULT_DIR_CONTEXT: &str = "/opt/templated";
     /// The name of the default working directory.
     pub const DEFAULT_WORKDIR: &str = "dist";
+    /// The default name for the primary configuration file.
+    pub const DEFAULT_CONFIG_FILE: &str = "Templated.toml";
 
     #[allow(unused)]
     pub(crate) const ROOT: &str = env!("CARGO_MANIFEST_DIR");
